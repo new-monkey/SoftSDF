@@ -1415,6 +1415,84 @@ int SDF_InternalPrivateKeyOperation_RSA(
 	return SDR_NOTSUPPORT;
 }
 
+int SDF_ExternalSign_ECC(
+	void *hSessionHandle,
+	unsigned int uiAlgID,
+	ECCrefPrivateKey *pucPrivateKey,
+	unsigned char *pucDataInput,
+	unsigned int uiInputLength,
+	ECCSignature *pucSignature)
+{
+	SOFTSDF_SESSION *session;
+	sm2_z256_t private_key;
+	SM2_KEY sm2_key;
+	SM2_SIGNATURE sig;
+	unsigned int i;
+
+	if (deviceHandle == NULL) {
+		error_print();
+		return SDR_STEPERR;
+	}
+
+	if (hSessionHandle == NULL) {
+		error_print();
+		return SDR_INARGERR;
+	}
+	session = deviceHandle->session_list;
+	while (session != NULL && session != hSessionHandle) {
+		session = session->next;
+	}
+	if (session == NULL) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	if (uiAlgID != SGD_SM2_1) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	if (pucPrivateKey == NULL) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	if (pucPrivateKey->bits != 256) {
+		error_print();
+		return SDR_INARGERR;
+	}
+	
+	// load private key
+	memset(&private_key, 0, sizeof(private_key));
+	memcpy(private_key, pucPrivateKey->K + ECCref_MAX_LEN - 32, 32);
+	if (sm2_key_set_private_key(&sm2_key, private_key) != 1) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	if (pucDataInput == NULL || uiInputLength != 32) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	if (pucSignature == NULL) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	// sign the  data
+	if (sm2_do_sign(&sm2_key, pucDataInput, &sig) != 1) {
+		error_print();
+		return SDR_GMSSLERR;
+	}
+
+	memset(pucSignature, 0, sizeof(*pucSignature));
+	memcpy(pucSignature->r + ECCref_MAX_LEN - 32, sig.r, 32);
+	memcpy(pucSignature->s + ECCref_MAX_LEN - 32, sig.s, 32);
+
+	return SDR_OK;
+}
+
 int SDF_ExternalVerify_ECC(
 	void *hSessionHandle,
 	unsigned int uiAlgID,

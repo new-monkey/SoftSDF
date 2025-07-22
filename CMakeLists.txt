@@ -12,7 +12,8 @@ link_directories(/usr/local/lib)
 add_library(softsdf SHARED ${SOFTSDF_SRC})
 set_target_properties(softsdf PROPERTIES OUTPUT_NAME "softsdf")
 
-target_link_libraries(softsdf /usr/local/lib/libgmssl.a)
+add_subdirectory(GmSSL)
+target_link_libraries(softsdf gmssl)
 
 
 option(ENABLE_SM4_ECB "Enable SM4 ECB mode" ON)

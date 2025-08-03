@@ -3,17 +3,19 @@ project(softsdf C)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -Wall")
 
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/sdf)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/sdf)
+
 set(SOFTSDF_SRC softsdf.c)
 set(SOFTSDFINIT_SRC softsdfinit.c)
 
-include_directories(/usr/local/include)
-link_directories(/usr/local/lib)
+add_subdirectory(GmSSL GmSSL)
 
 add_library(softsdf SHARED ${SOFTSDF_SRC})
 set_target_properties(softsdf PROPERTIES OUTPUT_NAME "softsdf")
 
-add_subdirectory(GmSSL)
 target_link_libraries(softsdf gmssl)
+target_include_directories(softsdf PUBLIC ./)
 
 
 option(ENABLE_SM4_ECB "Enable SM4 ECB mode" ON)
@@ -37,9 +39,9 @@ if(APPLE)
 endif()
 
 if(APPLE)
-    set_target_properties(softsdf PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_SOURCE_DIR}/softsdf.exp -Wl,-x")
+	set_target_properties(softsdf PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/softsdf.exp -Wl,-x")
 else()
-    set_target_properties(softsdf PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_SOURCE_DIR}/softsdf.lds -Wl,-x")
+	set_target_properties(softsdf PROPERTIES LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/softsdf.lds -Wl,-x")
 endif()
 
 add_executable(softsdfinit ${SOFTSDFINIT_SRC})

@@ -555,6 +555,60 @@ int SDF_ExchangeDigitEnvelopeBaseOnRSA(
 	return SDR_NOTSUPPORT;
 }
 
+int SDF_ExportSignPrivateKey_ECC(
+	void *hSessionHandle,
+	unsigned int uiKeyIndex,
+	ECCrefPrivateKey *pucPrivateKey)
+{
+
+	SOFTSDF_SESSION *session;
+	SOFTSDF_CONTAINER *container;
+
+	if (deviceHandle == NULL) {
+		error_print();
+		return SDR_STEPERR;
+	}
+
+	if (!hSessionHandle) {
+		error_print();
+		return SDR_INARGERR;
+	}
+	session = deviceHandle->session_list;
+	while (session != NULL && session != hSessionHandle) {
+		session = session->next;
+	}
+	if (session == NULL) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	// find container with key index
+	container = session->container_list;
+	while (container != NULL && container->key_index != uiKeyIndex) {
+		container = container->next;
+	}
+	if (container == NULL) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	SM2_KEY* sm2_key = &container->sign_key;
+
+
+	if (pucPrivateKey == NULL) {
+		error_print();
+		return SDR_INARGERR;
+	}
+
+	char private_key[32];
+	sm2_z256_to_bytes(sm2_key->private_key, (uint8_t*)private_key);
+	pucPrivateKey->bits = 256;
+	memset(pucPrivateKey->K, 0, ECCref_MAX_LEN - 32);
+	memcpy(pucPrivateKey->K + ECCref_MAX_LEN - 32, private_key, 32);
+
+	return SDR_OK;
+}
+
 int SDF_ExportSignPublicKey_ECC(
 	void *hSessionHandle,
 	unsigned int uiKeyIndex,
@@ -1427,7 +1481,6 @@ int SDF_ExternalSign_ECC(
 	sm2_z256_t private_key;
 	SM2_KEY sm2_key;
 	SM2_SIGNATURE sig;
-	unsigned int i;
 
 	if (deviceHandle == NULL) {
 		error_print();
@@ -1464,7 +1517,7 @@ int SDF_ExternalSign_ECC(
 	
 	// load private key
 	memset(&private_key, 0, sizeof(private_key));
-	memcpy(private_key, pucPrivateKey->K + ECCref_MAX_LEN - 32, 32);
+	sm2_z256_from_bytes(private_key, (uint8_t *)pucPrivateKey->K + ECCref_MAX_LEN - 32);
 	if (sm2_key_set_private_key(&sm2_key, private_key) != 1) {
 		error_print();
 		return SDR_INARGERR;
@@ -1640,7 +1693,7 @@ int SDF_InternalSign_ECC(
 		error_print();
 		return SDR_INARGERR;
 	}
-
+	
 	if (sm2_do_sign(&container->sign_key, pucData, &sig) != 1) {
 		error_print();
 		return SDR_GMSSLERR;

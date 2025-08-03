@@ -190,6 +190,11 @@ int SDF_ExportSignPublicKey_ECC(
 	unsigned int uiKeyIndex,
 	ECCrefPublicKey *pucPublicKey);
 
+int SDF_ExportSignPrivateKey_ECC(
+	void *hSessionHandle,
+	unsigned int uiKeyIndex,
+	ECCrefPrivateKey *pucPrivateKey);
+
 int SDF_ExportEncPublicKey_ECC(
 	void *hSessionHandle,
 	unsigned int uiKeyIndex,
@@ -308,6 +313,14 @@ int SDF_InternalPrivateKeyOperation_RSA(
 	unsigned int uiInputLength,
 	unsigned char *pucDataOutput,
 	unsigned int *puiOutputLength);
+
+int SDF_ExternalSign_ECC(
+	void *hSessionHandle,
+	unsigned int uiAlgID,
+	ECCrefPrivateKey *pucPrivateKey,
+	unsigned char *pucDataInput,
+	unsigned int uiInputLength,
+	ECCSignature *pucSignature);
 
 int SDF_ExternalVerify_ECC(
 	void *hSessionHandle,

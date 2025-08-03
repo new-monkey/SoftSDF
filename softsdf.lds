@@ -15,6 +15,7 @@ global:
 	SDF_GenerateKeyWithEPK_RSA;
 	SDF_ImportKeyWithISK_RSA;
 	SDF_ExchangeDigitEnvelopeBaseOnRSA;
+	SDF_ExportSignPrivateKey_ECC;
 	SDF_ExportSignPublicKey_ECC;
 	SDF_ExportEncPublicKey_ECC;
 	SDF_GenerateKeyPair_ECC;
@@ -31,6 +32,7 @@ global:
 	SDF_ExternalPublicKeyOperation_RSA;
 	SDF_InternalPublicKeyOperation_RSA;
 	SDF_InternalPrivateKeyOperation_RSA;
+	SDF_ExternalSign_ECC;
 	SDF_ExternalVerify_ECC;
 	SDF_InternalSign_ECC;
 	SDF_InternalVerify_ECC;
